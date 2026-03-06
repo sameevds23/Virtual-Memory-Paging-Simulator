@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paging & Virtual Memory Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .fault-yes {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        .fault-no {
+            color: #27ae60;
+            font-weight: 600;
+        }
+
+        .status-hit {
+            color: #27ae60;
+            font-weight: 600;
+        }
+
+        .status-fault {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .algorithm-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .algorithm-box h3 {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .fifo-box h3 {
+            color: #3498db;
+            border-color: #3498db;
+        }
+
+        .lru-box h3 {
+            color: #2ecc71;
+            border-color: #2ecc71;
+        }
+
+        .chart-container {
+            margin-top: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 300px;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .bar-group {
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .bar {
+            width: 80px;
+            background: linear-gradient(to top, #667eea, #764ba2);
+            border-radius: 8px 8px 0 0;
+            position: relative;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .bar:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .bar-label {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: 600;
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .bar-name {
+            margin-top: 10px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .fifo-bar {
+            background: linear-gradient(to top, #3498db, #5dade2);
+        }
+
+        .lru-bar {
+            background: linear-gradient(to top, #2ecc71, #58d68d);
+        }
+
+        .winner {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+
+        .help-section {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 5px solid #3498db;
+        }
+
+        .help-section h3 {
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+
+        .help-section p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .bar {
+                width: 60px;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💾 Paging & Virtual Memory Simulator</h1>
+            <p>Interactive Tool for Understanding Operating System Memory Management</p>
+        </div>
+
+        <div class="content">
+            <!-- SECTION 1: ADDRESS TRANSLATION -->
+            <div class="section">
+                <h2>📍 Section 1: Address Translation</h2>
+                
+                <div class="input-group">
+                    <label for="pageSize">Page Size (bytes)</label>
+                    <select id="pageSize">
+                        <option value="256">256</option>
+                        <option value="512">512</option>
+                        <option value="1024" selected>1024</option>
+                        <option value="2048">2048</option>
+                        <option value="4096">4096</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="numFrames">Number of Frames</label>
+                    <input type="number" id="numFrames" value="4" min="2" max="16">
+                </div>
+
+                <div class="input-group">
+                    <label for="addresses">Logical Addresses (comma-separated)</label>
+                    <textarea id="addresses">0, 1024, 2048, 3072, 1500, 4096, 2500</textarea>
+                </div>
+
+                <button class="btn" onclick="translateAddresses()">🔄 Translate Addresses</button>
+
+                <div id="translationResults" class="hidden">
+                    <div id="translationTable"></div>
+                    <div class="stats" id="translationStats"></div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: PAGE REPLACEMENT -->
+            <div class="section">
+                <h2>🔄 Section 2: Page Replacement Algorithms</h2>
+                
+                <div class="input-group">
+                    <label for="numFramesRepl">Number of Frames</label>
+                    <input type="number" id="numFramesRepl" value="3" min="1" max="10">
+                </div>
+
+                <div class="input-group">
+                    <label for="refString">Page Reference String (comma-separated)</label>
+                    <textarea id="refString">7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2</textarea>
+                </div>
+
+                <button class="btn" onclick="runSimulation()">⚡ Run Simulation</button>
+
+                <div id="simulationResults" class="hidden">
+                    <div class="comparison">
+                        <div class="algorithm-box fifo-box">
+                            <h3>🟦 FIFO Algorithm</h3>
+                            <div id="fifoTable"></div>
+                        </div>
+                        <div class="algorithm-box lru-box">
+                            <h3>🟩 LRU Algorithm</h3>
+                            <div id="lruTable"></div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <h3>📊 Performance Comparison</h3>
+                        <div id="comparisonTable"></div>
+                        
+                        <h3 style="margin-top: 30px;">📈 Visual Comparison</h3>
+                        <div class="bar-chart" id="barChart"></div>
+                    </div>
+
+                    <div id="winner"></div>
+                </div>
+            </div>
+
+            <!-- HELP SECTION -->
+            <div class="help-section">
+                <h3>ℹ️ How to Use This Simulator</h3>
+                <p><strong>Address Translation:</strong> Enter logical addresses and see how they're converted to physical addresses. The simulator shows page number, offset, frame number, and whether a page fault occurred.</p>
+                <p style="margin-top: 10px;"><strong>Page Replacement:</strong> Compare FIFO (First-In-First-Out) and LRU (Least Recently Used) algorithms. See which one performs better with fewer page faults!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================================
+        // ADDRESS TRANSLATION LOGIC
+        // ============================================================================
+        
+        function translateAddresses() {
+            const pageSize = parseInt(document.getElementById('pageSize').value);
+            const numFrames = parseInt(document.getElementById('numFrames').value);
+            const addressInput = document.getElementById('addresses').value;
+            
+            // Parse addresses
+            const addresses = addressInput.split(',').map(addr => parseInt(addr.trim()));
+            
+            // Page table to track allocations
+            const pageTable = {};
+            const translations = [];
+            
+            // Translate each address
+            addresses.forEach(logicalAddr => {
+                const pageNumber = Math.floor(logicalAddr / pageSize);
+                const offset = logicalAddr % pageSize;
+                
+                let frameNumber;
+                let pageFault = false;
+                
+                if (pageTable.hasOwnProperty(pageNumber)) {
+                    frameNumber = pageTable[pageNumber];
+                } else {
+                    // Allocate new frame (simplified)
+                    frameNumber = Object.keys(pageTable).length % numFrames;
+                    pageTable[pageNumber] = frameNumber;
+                    pageFault = true;
+                }
+                
+                const physicalAddr = frameNumber * pageSize + offset;
+                
+                translations.push({
+                    logicalAddr,
+                    pageNumber,
+                    offset,
+                    frameNumber,
+                    physicalAddr,
+                    pageFault
+                });
+            });
+            
+            // Display results
+            displayTranslations(translations);
+        }
+        
+        function displayTranslations(translations) {
+            const resultsDiv = document.getElementById('translationResults');
+            resultsDiv.classList.remove('hidden');
+            
+            // Create table
+            let tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Logical Address</th>
+                            <th>Page Number</th>
+                            <th>Offset</th>
+                            <th>Frame Number</th>
+                            <th>Physical Address</th>
+                            <th>Page Fault</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            translations.forEach(t => {
+                tableHTML += `
+                    <tr>
+                        <td>${t.logicalAddr}</td>
+                        <td>${t.pageNumber}</td>
+                        <td>${t.offset}</td>
+                        <td>${t.frameNumber}</td>
+                        <td>${t.physicalAddr}</td>
+                        <td class="${t.pageFault ? 'fault-yes' : 'fault-no'}">
+                            ${t.pageFault ? 'Yes' : 'No'}
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody></table>';
+            document.getElementById('translationTable').innerHTML = tableHTML;
+            
+            // Calculate stats
+            const faults = translations.filter(t => t.pageFault).length;
+            const hits = translations.length - faults;
+            
+            const statsHTML = `
+                <div class="stat-card">
+                    <h3>${translations.length}</h3>
+                    <p>Total References</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${faults}</h3>
+                    <p>Page Faults</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${hits}</h3>
+                    <p>Page Hits</p>
+                </div>
+            `;
+            
+            document.getElementById('translationStats').innerHTML = statsHTML;
+        }
+        
+        // ============================================================================
+        // PAGE REPLACEMENT LOGIC
+        // ============================================================================
+        
+        function simulateFIFO(refString, numFrames) {
+            const frames = [];
+            const frameSet = new Set();
+            let pageFaults = 0;
+            let pageHits = 0;
+            const states = [];
+            
+            refString.forEach(page => {
+                if (frameSet.has(page)) {
+                    pageHits++;
+                    states.push({
+                        page,
+                        frames: [...frames],
+                        status: 'Hit'
+                    });
+                } else {
+                    pageFaults++;
+                    
+                    if (frames.length >= numFrames) {
+                        const removed = frames.shift();
+                        frameSet.delete(removed);
+                    }
+                    
+                    frames.push(page);
+                    frameSet.add(page);
+                    
+                    states.push({
+                        page,
+                        frames: [...frames],
+                        status: 'Fault'
+                    });
+                }
+            });
+            
+            return { pageFaults, pageHits, states };
+        }
+        
+        function simulateLRU(refString, numFrames) {
+            const frames = [];
+            let pageFaults = 0;
+            let pageHits = 0;
+            const states = [];
+            
+            refString.forEach(page => {
+                const index = frames.indexOf(page);
+                
+                if (index !== -1) {
+                    pageHits++;
+                    // Move to end (most recently used)
+                    frames.splice(index, 1);
+                    frames.push(page);
+                    
+                    states.push({
+                        page,
+                        frames: [...frames],
+                        status: 'Hit'
+                    });
+                } else {
+                    pageFaults++;
+                    
+                    if (frames.length >= numFrames) {
+                        frames.shift(); // Remove least recently used
+                    }
+                    
+                    frames.push(page);
+                    
+                    states.push({
+                        page,
+                        frames: [...frames],
+                        status: 'Fault'
+                    });
+                }
+            });
+            
+            return { pageFaults, pageHits, states };
+        }
+        
+        function runSimulation() {
+            const numFrames = parseInt(document.getElementById('numFramesRepl').value);
+            const refInput = document.getElementById('refString').value;
+            
+            // Parse reference string
+            const refString = refInput.split(',').map(p => parseInt(p.trim()));
+            
+            // Run both algorithms
+            const fifoResult = simulateFIFO(refString, numFrames);
+            const lruResult = simulateLRU(refString, numFrames);
+            
+            // Display results
+            displaySimulationResults(fifoResult, lruResult, refString.length);
+        }
+        
+        function displaySimulationResults(fifo, lru, totalRefs) {
+            const resultsDiv = document.getElementById('simulationResults');
+            resultsDiv.classList.remove('hidden');
+            
+            // FIFO Table
+            let fifoHTML = '<table><thead><tr><th>Page</th><th>Frames</th><th>Status</th></tr></thead><tbody>';
+            fifo.states.forEach(state => {
+                fifoHTML += `
+                    <tr>
+                        <td>${state.page}</td>
+                        <td>[${state.frames.join(', ')}]</td>
+                        <td class="status-${state.status.toLowerCase()}">${state.status}</td>
+                    </tr>
+                `;
+            });
+            fifoHTML += '</tbody></table>';
+            document.getElementById('fifoTable').innerHTML = fifoHTML;
+            
+            // LRU Table
+            let lruHTML = '<table><thead><tr><th>Page</th><th>Frames</th><th>Status</th></tr></thead><tbody>';
+            lru.states.forEach(state => {
+                lruHTML += `
+                    <tr>
+                        <td>${state.page}</td>
+                        <td>[${state.frames.join(', ')}]</td>
+                        <td class="status-${state.status.toLowerCase()}">${state.status}</td>
+                    </tr>
+                `;
+            });
+            lruHTML += '</tbody></table>';
+            document.getElementById('lruTable').innerHTML = lruHTML;
+            
+            // Comparison Table
+            const fifoRate = ((fifo.pageFaults / totalRefs) * 100).toFixed(2);
+            const lruRate = ((lru.pageFaults / totalRefs) * 100).toFixed(2);
+            
+            const compHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Algorithm</th>
+                            <th>Total References</th>
+                            <th>Page Faults</th>
+                            <th>Page Hits</th>
+                            <th>Fault Rate (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>FIFO</strong></td>
+                            <td>${totalRefs}</td>
+                            <td>${fifo.pageFaults}</td>
+                            <td>${fifo.pageHits}</td>
+                            <td>${fifoRate}%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>LRU</strong></td>
+                            <td>${totalRefs}</td>
+                            <td>${lru.pageFaults}</td>
+                            <td>${lru.pageHits}</td>
+                            <td>${lruRate}%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('comparisonTable').innerHTML = compHTML;
+            
+            // Bar Chart
+            const maxFaults = Math.max(fifo.pageFaults, lru.pageFaults);
+            const fifoHeight = (fifo.pageFaults / maxFaults) * 250;
+            const lruHeight = (lru.pageFaults / maxFaults) * 250;
+            
+            const chartHTML = `
+                <div class="bar-group">
+                    <div class="bar fifo-bar" style="height: ${fifoHeight}px;">
+                        <span class="bar-label">${fifo.pageFaults}</span>
+                    </div>
+                    <div class="bar-name">FIFO<br>Page Faults</div>
+                </div>
+                <div class="bar-group">
+                    <div class="bar lru-bar" style="height: ${lruHeight}px;">
+                        <span class="bar-label">${lru.pageFaults}</span>
+                    </div>
+                    <div class="bar-name">LRU<br>Page Faults</div>
+                </div>
+            `;
+            document.getElementById('barChart').innerHTML = chartHTML;
+            
+            // Winner
+            let winnerHTML = '';
+            if (fifo.pageFaults < lru.pageFaults) {
+                winnerHTML = '<div class="winner">🏆 FIFO performed better with fewer page faults!</div>';
+            } else if (lru.pageFaults < fifo.pageFaults) {
+                winnerHTML = '<div class="winner">🏆 LRU performed better with fewer page faults!</div>';
+            } else {
+                winnerHTML = '<div class="winner">🤝 Both algorithms performed equally!</div>';
+            }
+            document.getElementById('winner').innerHTML = winnerHTML;
+        }
+    </script>
+</body>
+</html>
