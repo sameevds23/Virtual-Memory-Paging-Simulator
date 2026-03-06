@@ -4,33 +4,24 @@ Interactive browser-based simulator for virtual memory management and page repla
 This project is an interactive web-based simulator that demonstrates how paging and virtual memory management work in operating systems. It allows users to visualize logical to physical address translation and compare page replacement algorithms. The simulator helps in understanding how memory is managed efficiently using paging techniques.
 
 Features:
-Logical to Physical Address Translation
-Simulation of Page Replacement Algorithms
-FIFO (First In First Out) Algorithm
-LRU (Least Recently Used) Algorithm
-Visualization of Page Faults and Page Hits
+Logical to Physical Address Translation,
+Simulation of Page Replacement Algorithms,
+FIFO (First In First Out) Algorithm,
+LRU (Least Recently Used) Algorithm,
+Visualization of Page Faults and Page Hits,
 Performance comparison between algorithms
 
-Technologies Used:
-HTML
-CSS
-JavaScript
+Technologies Used are HTML, CSS and JavaScript
 
 The simulator runs entirely in the browser without requiring any backend server.
-
-How to Use:
-Open the simulator using the deployed link.
-Enter the page size and number of frames.
-Provide logical addresses or page reference string.
-Run the simulation.
 
 Learning Objectives:
 This simulator demonstrates key concepts from Operating Systems such as:
 
-Paging
-Virtual Memory
-Address Translation
-Page Replacement Algorithms
+Paging,
+Virtual Memory,
+Address Translation,
+Page Replacement Algorithms and 
 Memory Management
 
 
